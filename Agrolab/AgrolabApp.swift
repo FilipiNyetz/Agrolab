@@ -9,9 +9,14 @@ import SwiftUI
 
 @main
 struct AgrolabApp: App {
+    @State private var container = AppContainer()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
+                .environment(container)
+                .environment(container.session)
+                .task { await container.session.restoreSession() }
         }
     }
 }
