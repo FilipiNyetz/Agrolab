@@ -27,11 +27,7 @@ struct MainTabView: View {
                 )
             }
             Tab("Pragas", systemImage: "ladybug", value: .pests) {
-                PlaceholderFeatureView(
-                    title: "Identificar Pragas",
-                    symbolName: "ladybug",
-                    message: "Fotografe a planta e receba a identificação da praga com recomendações."
-                )
+                PestsView()
             }
             Tab("Histórico", systemImage: "calendar.badge.clock", value: .history) {
                 PlaceholderFeatureView(
