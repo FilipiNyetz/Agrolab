@@ -8,6 +8,7 @@ import SwiftUI
 
 /// Identificação de pragas e doenças a partir de uma foto, usando Core ML.
 struct PestsView: View {
+    @Environment(AppContainer.self) private var container
     @State private var viewModel = PestsViewModel()
     @State private var pickerItem: PhotosPickerItem?
     @State private var showCamera = false
@@ -29,6 +30,10 @@ struct PestsView: View {
                     }
                     if let diagnosis = viewModel.diagnosis {
                         DiagnosisCard(diagnosis: diagnosis)
+                        // UC03, passo 7: tirar dúvidas sobre o diagnóstico com o AgroBot (UC06).
+                        AgroOutlineButton(title: "Tirar dúvidas com o AgroBot") {
+                            container.agroBotLauncher.open(AgroBotTopic(diagnosis: diagnosis))
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -49,6 +54,10 @@ struct PestsView: View {
             }
             .navigationTitle("Identificar Pragas")
             .navigationSubtitle("Fotografe uma folha da planta")
+            .onChange(of: viewModel.diagnosis?.id) {
+                // Alimenta o contexto do AgroBot com os diagnósticos recentes (RN19).
+                if let diagnosis = viewModel.diagnosis { container.recentDiagnoses.record(diagnosis) }
+            }
             .onChange(of: pickerItem) { _, item in
                 guard let item else { return }
                 Task {
@@ -184,4 +193,5 @@ private struct DiagnosisCard: View {
 
 #Preview {
     PestsView()
+        .environment(AppContainer())
 }

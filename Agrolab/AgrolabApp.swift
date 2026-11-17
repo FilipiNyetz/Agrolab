@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct AgrolabApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var container = AppContainer()
 
     var body: some Scene {
