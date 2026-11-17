@@ -37,6 +37,8 @@ final class SessionManager {
     @ObservationIgnored private var refreshToken: String?
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private var refreshTask: Task<Session, Error>?
+    /// Chamado após a exclusão da conta, com o id do usuário, para apagar dados locais de outras features.
+    @ObservationIgnored var onAccountDeleted: ((String) -> Void)?
 
     private let authService: any AuthServicing
     private let keychain: KeychainStore
@@ -170,6 +172,7 @@ final class SessionManager {
 
     /// Solicita o encerramento da conta (`DELETE /users/me`) e limpa a sessão local.
     func deleteAccount(password: String) async throws {
+        let userID = currentUser?.id
         try await withAccessToken { [authService] token in
             try await authService.deleteAccount(accessToken: token, password: password)
         }
@@ -178,6 +181,7 @@ final class SessionManager {
         refreshTask = nil
         clearLocalState()
         state = .signedOut
+        if let userID { onAccountDeleted?(userID) }
     }
 
     // MARK: Privado

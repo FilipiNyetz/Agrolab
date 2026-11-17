@@ -12,6 +12,7 @@ nonisolated enum AppTab: Hashable, Sendable {
 
 /// Área autenticada com a barra de abas principal.
 struct MainTabView: View {
+    @Environment(AppContainer.self) private var container
     @State private var selectedTab: AppTab = .home
 
     var body: some View {
@@ -37,14 +38,13 @@ struct MainTabView: View {
                 )
             }
             Tab("AgroBot", systemImage: "cpu", value: .agroBot) {
-                PlaceholderFeatureView(
-                    title: "AgroBot",
-                    symbolName: "cpu",
-                    message: "Tire dúvidas sobre manejo, adubação e pragas com o assistente do AgroLab."
-                )
+                AgroBotView()
             }
         }
         .tint(AgroTheme.Colors.primaryDark)
+        .onChange(of: container.agroBotLauncher.pendingTopic) { _, topic in
+            if topic != nil { selectedTab = .agroBot }
+        }
     }
 }
 

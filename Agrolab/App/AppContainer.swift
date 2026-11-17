@@ -14,6 +14,12 @@ final class AppContainer {
     let authService: any AuthServicing
     let session: SessionManager
 
+    // AgroBot (UC06): modelo local, voz, conversas e contexto da lavoura.
+    let agroBot: AgroBotService
+    let voice: VoiceService
+    let recentDiagnoses: RecentDiagnosesStore
+    let agroBotLauncher = AgroBotLauncher()
+
     init(environment: AppEnvironment = .current) {
         self.environment = environment
 
@@ -22,6 +28,23 @@ final class AppContainer {
         let keychain = KeychainStore(service: "br.com.Agrolab.auth", account: "refresh_token")
 
         self.authService = authService
-        self.session = SessionManager(authService: authService, keychain: keychain)
+        let session = SessionManager(authService: authService, keychain: keychain)
+        self.session = session
+
+        let recentDiagnoses = RecentDiagnosesStore()
+        let agroBot = AgroBotService(engine: QwenAgroBotEngine(), chats: AgroBotChatStore(), diagnoses: recentDiagnoses)
+        self.recentDiagnoses = recentDiagnoses
+        self.agroBot = agroBot
+        self.voice = VoiceService(recognition: AppleSpeechRecognizer(), synthesis: PiperSpeechSynthesizer())
+
+        // LGPD (RNF-015): ao excluir a conta, as conversas locais do AgroBot também são apagadas.
+        session.onAccountDeleted = { [weak agroBot, weak recentDiagnoses] userID in
+            try? agroBot?.deleteConversations(ownerID: userID)
+            recentDiagnoses?.removeAll()
+        }
+    }
+
+    func makeAgroBotViewModel(user: User) -> AgroBotViewModel {
+        AgroBotViewModel(service: agroBot, voice: voice, user: user)
     }
 }
